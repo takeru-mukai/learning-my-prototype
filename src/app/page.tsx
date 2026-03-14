@@ -1,49 +1,45 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Search, MapPin, Star, Grid3x3, List } from "lucide-react";
-import { cafes, renderStars, type Cafe } from "./data";
+import { Search, MapPin, Info } from "lucide-react";
+import {
+  destinations,
+  categories,
+  similarKeywords,
+  type Category,
+  type Destination,
+} from "./data";
 
 // ─── Components ───
 
-function CafeCardGrid({ cafe }: { cafe: Cafe }) {
+function DestinationCard({ destination }: { destination: Destination }) {
   return (
-    <Link
-      href="/cafe"
-      className="group block rounded-lg border border-border overflow-hidden hover:shadow-bottom-200 transition-all"
-    >
-      <div className="aspect-[4/3] bg-bg-surface overflow-hidden">
+    <Link href={`/detail?id=${destination.id}`} className="group block rounded-2xl overflow-hidden bg-bg-surface hover:-translate-y-0.5 transition-all duration-200">
+      {/* 写真 */}
+      <div className="aspect-[4/3] overflow-hidden">
         <img
-          src={cafe.image}
-          alt={cafe.name}
+          src={destination.image}
+          alt={destination.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
       </div>
+      {/* テキストエリア */}
       <div className="p-4">
-        <div className="flex items-start justify-between gap-2 mb-1">
-          <h3 className="font-bold text-text group-hover:text-primary transition-colors">
-            {cafe.name}
-          </h3>
-          <span className="text-sm text-text-sub shrink-0">{cafe.priceRange}</span>
-        </div>
+        <h3 className="font-bold text-text mb-1">{destination.name}</h3>
         <div className="flex items-center gap-1 text-sm text-text-sub mb-2">
           <MapPin size={13} />
-          <span>{cafe.area}</span>
+          <span>{destination.area}</span>
         </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm font-bold text-primary">{cafe.rating}</span>
-            <span className="text-xs text-amber-400">{renderStars(cafe.rating)}</span>
-          </div>
-          <span className="text-xs text-text-hint">{cafe.reviewCount} reviews</span>
-        </div>
-        <div className="flex flex-wrap gap-1 mt-3">
-          {cafe.tags.map((tag) => (
+        <p className="text-sm font-bold text-primary mb-3">
+          {destination.budgetLabel}
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {destination.tags.map((tag) => (
             <span
               key={tag}
-              className="text-[11px] px-2 py-0.5 rounded-full bg-bg-surface text-text-sub"
+              className="text-[11px] px-2.5 py-1 rounded-full bg-bg-hover text-text-sub font-medium"
             >
               {tag}
             </span>
@@ -54,179 +50,252 @@ function CafeCardGrid({ cafe }: { cafe: Cafe }) {
   );
 }
 
-function CafeCardList({ cafe }: { cafe: Cafe }) {
-  return (
-    <Link
-      href="/cafe"
-      className="group flex gap-4 rounded-lg border border-border overflow-hidden hover:shadow-bottom-200 transition-all p-3"
-    >
-      <div className="w-32 h-24 rounded-md bg-bg-surface overflow-hidden shrink-0">
-        <img
-          src={cafe.image}
-          alt={cafe.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-        />
-      </div>
-      <div className="flex-1 min-w-0 flex flex-col justify-between">
-        <div>
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-bold text-text group-hover:text-primary transition-colors truncate">
-              {cafe.name}
-            </h3>
-            <span className="text-sm text-text-sub shrink-0">{cafe.priceRange}</span>
-          </div>
-          <div className="flex items-center gap-1 text-sm text-text-sub mt-0.5">
-            <MapPin size={13} />
-            <span>{cafe.area}</span>
-          </div>
-        </div>
-        <div className="flex items-center justify-between mt-2">
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm font-bold text-primary">{cafe.rating}</span>
-            <span className="text-xs text-amber-400">{renderStars(cafe.rating)}</span>
-            <span className="text-xs text-text-hint ml-1">({cafe.reviewCount})</span>
-          </div>
-          <div className="flex gap-1">
-            {cafe.tags.slice(0, 2).map((tag) => (
-              <span
-                key={tag}
-                className="text-[11px] px-2 py-0.5 rounded-full bg-bg-surface text-text-sub"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
 function SkeletonCard() {
   return (
-    <div className="rounded-lg border border-border overflow-hidden animate-pulse">
-      <div className="aspect-[4/3] bg-bg-surface" />
+    <div className="rounded-2xl bg-bg-surface overflow-hidden animate-pulse">
+      <div className="aspect-[4/3] bg-bg-input" />
       <div className="p-4 space-y-3">
-        <div className="h-4 bg-bg-surface rounded w-3/4" />
-        <div className="h-3 bg-bg-surface rounded w-1/2" />
-        <div className="h-3 bg-bg-surface rounded w-2/3" />
+        <div className="h-4 bg-bg-input rounded-md w-3/4" />
+        <div className="h-3 bg-bg-input rounded-md w-1/2" />
+        <div className="h-3 bg-bg-input rounded-md w-1/3" />
       </div>
     </div>
   );
 }
 
-function EmptyState() {
+function SuggestionBanner({
+  query,
+  hasPartialMatch,
+}: {
+  query: string;
+  hasPartialMatch: boolean;
+}) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="w-16 h-16 rounded-full bg-bg-surface flex items-center justify-center mb-4">
-        <Search size={24} className="text-text-hint" />
-      </div>
-      <h3 className="text-lg font-bold text-text mb-1">見つかりませんでした</h3>
-      <p className="text-sm text-text-sub max-w-xs">
-        条件に一致するカフェがありません。検索条件を変更してお試しください。
+    <div className="flex items-start gap-2.5 mb-4 p-4 rounded-2xl bg-primary-subtle">
+      <Info size={16} className="text-primary shrink-0 mt-0.5" />
+      <p className="text-sm text-text-sub">
+        {hasPartialMatch ? (
+          <>
+            「<span className="font-medium text-text">{query}</span>
+            」に一致する旅行先はありませんでしたが、あなたの興味がありそうなものを表示しています。
+          </>
+        ) : (
+          <>
+            「<span className="font-medium text-text">{query}</span>
+            」に一致する旅行先は見つかりませんでした。こちらのおすすめはいかがですか？
+          </>
+        )}
       </p>
     </div>
   );
 }
 
+// ─── Search logic ───
+
+function findSimilarTags(query: string): string[] {
+  const q = query.trim();
+  if (q === "") return [];
+
+  const matched: string[] = [];
+  for (const [keyword, tags] of Object.entries(similarKeywords)) {
+    if (keyword.includes(q) || q.includes(keyword)) {
+      matched.push(...tags);
+    }
+  }
+  return [...new Set(matched)];
+}
+
+function sortByRelevance(
+  items: Destination[],
+  matchTags: string[]
+): Destination[] {
+  if (matchTags.length === 0) {
+    return [...items].sort((a, b) => a.budgetValue - b.budgetValue);
+  }
+
+  return [...items]
+    .map((d) => {
+      const score = d.tags.filter((t) => matchTags.includes(t)).length;
+      return { dest: d, score };
+    })
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.dest.budgetValue - b.dest.budgetValue;
+    })
+    .map((item) => item.dest);
+}
+
+type SearchResult = {
+  results: Destination[];
+  mode: "exact" | "similar" | "fallback";
+};
+
+function searchDestinations(
+  query: string,
+  activeCategory: Category
+): SearchResult {
+  const q = query.trim();
+
+  const filterByCategory = (list: Destination[]) =>
+    activeCategory === "すべて"
+      ? list
+      : list.filter((d) => d.tags.includes(activeCategory));
+
+  if (q === "") {
+    return {
+      results: filterByCategory(destinations),
+      mode: "exact",
+    };
+  }
+
+  const exact = filterByCategory(
+    destinations.filter(
+      (d) =>
+        d.name.includes(q) ||
+        d.area.includes(q) ||
+        d.tags.some((t) => t.includes(q)) ||
+        d.description.includes(q)
+    )
+  );
+
+  if (exact.length > 0) {
+    return { results: exact, mode: "exact" };
+  }
+
+  const similarTags = findSimilarTags(q);
+
+  if (similarTags.length > 0) {
+    const suggested = filterByCategory(
+      destinations.filter((d) => d.tags.some((t) => similarTags.includes(t)))
+    );
+
+    if (suggested.length > 0) {
+      return {
+        results: sortByRelevance(suggested, similarTags),
+        mode: "similar",
+      };
+    }
+  }
+
+  const fallback = filterByCategory(destinations);
+
+  if (fallback.length > 0) {
+    return {
+      results: sortByRelevance(fallback, []),
+      mode: "fallback",
+    };
+  }
+
+  return {
+    results: sortByRelevance(destinations, []),
+    mode: "fallback",
+  };
+}
+
 // ─── Main ───
 
-function CafeListInner() {
+function TravelListInner() {
   const searchParams = useSearchParams();
   const variant = searchParams.get("_v");
-  const tab = searchParams.get("_tab");
 
-  // State: grid (default) or list — controlled by app UI toggle & ProtoNav
-  const isGrid = tab !== "list";
   const isLoading = variant === "loading";
   const isEmpty = variant === "empty";
 
+  const [query, setQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState<Category>("すべて");
+
+  const { results, mode } = useMemo(
+    () => searchDestinations(query, activeCategory),
+    [query, activeCategory]
+  );
+
   return (
-    <main className="max-w-5xl mx-auto px-4 py-6">
+    <main className="max-w-5xl mx-auto px-5 py-8">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-text mb-1">Cafe Explorer</h1>
-        <p className="text-sm text-text-sub">ホーチミンのお気に入りカフェを見つけよう</p>
+      <div className="mb-8">
+        <h1 className="text-[28px] font-bold text-text mb-1 tracking-tight">
+          ひとり旅プランナー
+        </h1>
+        <p className="text-[15px] text-text-sub">
+          休日にふらっと行ける、一人旅の行き先を見つけよう
+        </p>
       </div>
 
-      {/* Search & Controls */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="flex-1 relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-hint" />
+      {/* 検索バー — bg-input で背景と明確に区別 */}
+      <div className="mb-5">
+        <div className="relative">
+          <Search
+            size={16}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-text-hint"
+          />
           <input
             type="text"
-            placeholder="カフェ名・エリアで検索..."
-            className="w-full pl-9 pr-4 py-2.5 text-sm rounded-lg border border-border bg-bg focus:outline-none focus:border-border-primary focus:ring-2 focus:ring-border-focus/50 transition-colors"
+            placeholder="行き先・エリア・タグで検索..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 text-[15px] rounded-xl bg-bg-input focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all duration-200 placeholder:text-text-hint"
           />
-        </div>
-        {/* Grid/List toggle — this is an app feature (State), not a Pattern */}
-        <div className="flex items-center bg-bg-surface rounded-lg p-1 gap-0.5">
-          <Link
-            href="/"
-            className={`w-9 h-9 flex items-center justify-center rounded-md transition-colors ${
-              isGrid
-                ? "bg-bg text-text shadow-sm"
-                : "text-text-sub hover:text-text"
-            }`}
-          >
-            <Grid3x3 size={16} />
-          </Link>
-          <Link
-            href="/?_tab=list"
-            className={`w-9 h-9 flex items-center justify-center rounded-md transition-colors ${
-              !isGrid
-                ? "bg-bg text-text shadow-sm"
-                : "text-text-sub hover:text-text"
-            }`}
-          >
-            <List size={16} />
-          </Link>
         </div>
       </div>
 
-      {/* Filter chips */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
-        {["All", "Wi-Fi", "Specialty", "Pet-Friendly", "Budget"].map((filter, i) => (
+      {/* カテゴリフィルター — bg-input で背景と区別 */}
+      <div className="flex gap-2 mb-8 overflow-x-auto pb-1">
+        {categories.map((cat) => (
           <button
-            key={filter}
-            className={`px-4 py-1.5 text-sm rounded-full border whitespace-nowrap transition-colors ${
-              i === 0
-                ? "bg-primary text-on-fill border-primary"
-                : "border-border text-text-sub hover:bg-bg-surface"
+            key={cat}
+            onClick={() => {
+              setActiveCategory(cat);
+              setQuery("");
+            }}
+            className={`px-4 py-2 text-[13px] font-medium rounded-full whitespace-nowrap transition-all duration-200 ${
+              activeCategory === cat
+                ? "bg-primary text-on-fill"
+                : "bg-bg-input text-text-sub hover:bg-bg-hover"
             }`}
           >
-            {filter}
+            {cat}
           </button>
         ))}
       </div>
 
       {/* Content */}
       {isLoading ? (
-        <div className={`grid gap-4 ${isGrid ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"}`}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {Array.from({ length: 6 }).map((_, i) => (
             <SkeletonCard key={i} />
           ))}
         </div>
       ) : isEmpty ? (
-        <EmptyState />
-      ) : isGrid ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {cafes.map((cafe) => (
-            <CafeCardGrid key={cafe.id} cafe={cafe} />
-          ))}
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="w-20 h-20 rounded-full bg-bg-surface flex items-center justify-center mb-6">
+            <Search size={32} className="text-text-hint" />
+          </div>
+          <h2 className="text-[20px] font-bold text-text mb-2">検索結果がありません</h2>
+          <p className="text-[14px] text-text-sub text-center leading-relaxed max-w-xs">
+            条件に一致する旅行先が見つかりませんでした。<br />キーワードを変えて再度お試しください。
+          </p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {cafes.map((cafe) => (
-            <CafeCardList key={cafe.id} cafe={cafe} />
-          ))}
-        </div>
+        <>
+          {mode !== "exact" && query.trim() !== "" && (
+            <SuggestionBanner
+              query={query}
+              hasPartialMatch={mode === "similar"}
+            />
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {results.map((dest) => (
+              <DestinationCard key={dest.id} destination={dest} />
+            ))}
+          </div>
+        </>
       )}
 
-      {/* Results count */}
-      {!isLoading && !isEmpty && (
-        <p className="text-xs text-text-hint text-center mt-6">
-          {cafes.length} cafes found
+      {/* 件数 */}
+      {!isLoading && !isEmpty && results.length > 0 && (
+        <p className="text-xs text-text-hint text-center mt-8">
+          {results.length} 件の旅行先
         </p>
       )}
     </main>
@@ -236,7 +305,7 @@ function CafeListInner() {
 export default function Home() {
   return (
     <Suspense>
-      <CafeListInner />
+      <TravelListInner />
     </Suspense>
   );
 }

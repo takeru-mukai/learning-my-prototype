@@ -3,10 +3,7 @@
 import { useState, useEffect } from "react";
 
 /**
- * QA チェックリスト — Cafe Explorer サンプル
- *
- * テンプレート使用時はこの内容を実際のテストケースに書き換えてください。
- * チェック状態は localStorage に保存されます。
+ * QA チェックリスト — ひとり旅プランナー
  */
 
 type Priority = "P0" | "P1" | "P2";
@@ -33,109 +30,39 @@ const priorityStyles: Record<Priority, string> = {
 
 const templateSections: QASection[] = [
   {
-    id: "cafe-list",
-    title: "カフェ一覧",
+    id: "destination-list",
+    title: "行き先一覧",
     cases: [
       {
         id: "list-1",
-        title: "一覧表示: グリッド <-> リスト切替",
+        title: "カテゴリフィルター切り替え",
         steps: [
           "トップページを開く",
-          "右上のグリッド/リストトグルをクリックする",
-          "表示が切り替わることを確認する",
+          "「温泉」フィルターをタップする",
+          "温泉タグを持つ行き先のみ表示されることを確認する",
         ],
-        expected: "グリッド表示（3列）とリスト表示が切り替わり、カフェ情報が正しく表示される",
+        expected:
+          "選択したカテゴリに該当する行き先カードのみが表示される",
         priority: "P0",
       },
       {
         id: "list-2",
-        title: "空状態: 検索結果なし",
+        title: "検索で絞り込み",
         steps: [
-          "/?_v=empty にアクセスする",
-          "空状態のUIが表示されることを確認する",
+          "検索バーに「金沢」と入力する",
+          "金沢のカードのみ表示されることを確認する",
         ],
-        expected: "「見つかりませんでした」メッセージと検索条件変更の案内が表示される",
-        priority: "P1",
+        expected: "入力文字に一致する行き先だけが表示される",
+        priority: "P0",
       },
       {
         id: "list-3",
-        title: "ローディング状態",
+        title: "検索結果なし",
         steps: [
-          "/?_v=loading にアクセスする",
-          "スケルトンUIが表示されることを確認する",
+          "検索バーに存在しない地名を入力する",
         ],
-        expected: "カードのスケルトン（アニメーション付き）が6枚表示される",
-        priority: "P1",
-      },
-    ],
-  },
-  {
-    id: "cafe-detail",
-    title: "カフェ詳細",
-    cases: [
-      {
-        id: "detail-1",
-        title: "タブ切替: メニュー -> レビュー",
-        steps: [
-          "/cafe を開く（メニュータブがデフォルト）",
-          "「Reviews」タブをクリックする",
-          "レビュー一覧が表示されることを確認する",
-        ],
-        expected: "タブの下線がReviewsに移動し、レビューカードが表示される",
-        priority: "P0",
-      },
-      {
-        id: "detail-2",
-        title: "レビュー表示パターン: カード型 vs タイムライン型",
-        steps: [
-          "/cafe?_tab=reviews にアクセス（カード型）",
-          "/cafe?_tab=reviews&_p=timeline-review にアクセス（タイムライン型）",
-          "両方の表示を比較する",
-        ],
-        expected: "カード型は独立カード、タイムライン型は縦線で繋がった表示になる",
-        priority: "P0",
-      },
-      {
-        id: "detail-3",
-        title: "レビューなし状態",
-        steps: [
-          "/cafe?_tab=reviews&_v=no-reviews にアクセスする",
-        ],
-        expected: "「まだレビューがありません」+ 「レビューを書く」CTAが表示される",
-        priority: "P1",
-      },
-    ],
-  },
-  {
-    id: "navigation",
-    title: "ナビゲーション",
-    cases: [
-      {
-        id: "nav-1",
-        title: "一覧 -> 詳細への遷移",
-        steps: [
-          "トップページのカフェカードをクリックする",
-        ],
-        expected: "カフェ詳細画面に遷移する",
-        priority: "P0",
-      },
-      {
-        id: "nav-2",
-        title: "詳細 -> 一覧への戻り",
-        steps: [
-          "/cafe を開く",
-          "「Back」リンクをクリックする",
-        ],
-        expected: "カフェ一覧画面に戻る",
-        priority: "P0",
-      },
-      {
-        id: "nav-3",
-        title: "ProtoNav のタブ切替",
-        steps: [
-          "上部ナビの Prototype / Map / Spec / QA を順にクリックする",
-        ],
-        expected: "各ページに正しく遷移し、アクティブタブがハイライトされる",
+        expected:
+          "「見つかりませんでした」メッセージが表示される",
         priority: "P1",
       },
     ],
@@ -262,7 +189,7 @@ export default function QAPage() {
         </button>
       </div>
       <p className="text-text-sub text-sm mb-6">
-        Cafe Explorer プロトタイプのテストケース（サンプル）
+        ひとり旅プランナー プロトタイプのテストケース
       </p>
 
       {/* プログレスバー */}
@@ -280,19 +207,6 @@ export default function QAPage() {
           />
         </div>
       </div>
-
-      {/* セクションナビ */}
-      <nav className="flex flex-wrap gap-2 mb-8 text-sm">
-        {templateSections.map((s) => (
-          <a
-            key={s.id}
-            href={`#${s.id}`}
-            className="px-3 py-1 rounded-full border border-border text-text-sub hover:bg-bg-surface transition-colors"
-          >
-            {s.title}
-          </a>
-        ))}
-      </nav>
 
       {/* テストケース */}
       {templateSections.map((section) => (

@@ -5,10 +5,11 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { screens, type Screen } from "./map/screens";
 import { ScreenPanel } from "./map/screen-panel";
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid, Sun, Moon } from "lucide-react";
 
 const links = [
   { href: "/", label: "Prototype" },
+  { href: "/design-system", label: "Design System" },
   { href: "/map", label: "Map" },
   { href: "/spec", label: "Spec" },
   { href: "/qa", label: "QA" },
@@ -50,7 +51,17 @@ function ProtoNavInner() {
   const isPrototypePage =
     !cleanPath.startsWith("/spec") &&
     !cleanPath.startsWith("/qa") &&
-    !cleanPath.startsWith("/map");
+    !cleanPath.startsWith("/map") &&
+    !cleanPath.startsWith("/design-system");
+
+  const [isDark, setIsDark] = useState(false);
+
+  // テーマ切り替え
+  const toggleTheme = () => {
+    const next = !isDark;
+    setIsDark(next);
+    document.documentElement.setAttribute("data-theme", next ? "dark" : "light");
+  };
 
   const panelScreen = panelOpen && screen ? screen : null;
 
@@ -81,7 +92,16 @@ function ProtoNavInner() {
             })}
           </div>
 
-          {/* Right: overview button */}
+          {/* Right: theme toggle + overview button */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleTheme}
+              className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded transition-colors bg-gray-100 text-gray-600 hover:bg-gray-200"
+              title={isDark ? "ライトモードに切り替え" : "ダークモードに切り替え"}
+            >
+              {isDark ? <Sun size={12} /> : <Moon size={12} />}
+              {isDark ? "Light" : "Dark"}
+            </button>
           {isPrototypePage && screen && (() => {
             const viewCount =
               screen.states.length +
@@ -102,6 +122,7 @@ function ProtoNavInner() {
               </button>
             );
           })()}
+          </div>
         </div>
       </nav>
 

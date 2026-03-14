@@ -1,178 +1,258 @@
-// ─── Sample data for Cafe Review prototype ───
+// ─── Sample data for Solo Travel prototype ───
 
-export type Cafe = {
+export type Destination = {
   id: string;
   name: string;
   area: string;
-  rating: number;
-  reviewCount: number;
-  tags: string[];
   image: string;
-  priceRange: string;
-  hours: string;
+  budgetLabel: string;
+  budgetValue: number; // ソート用の数値
+  tags: string[];
   description: string;
 };
 
-export type MenuItem = {
-  id: string;
-  name: string;
-  price: number;
-  category: "coffee" | "tea" | "food" | "dessert";
-  popular?: boolean;
+export const categories = [
+  "すべて",
+  "温泉",
+  "自然",
+  "グルメ",
+  "歴史・文化",
+  "アート",
+  "離島",
+] as const;
+
+export type Category = (typeof categories)[number];
+
+// ─── 類似キーワードマッピング ───
+// 検索語に完全一致しなくても、関連するタグを返す
+
+export const similarKeywords: Record<string, string[]> = {
+  // === 温泉系 ===
+  "お風呂": ["温泉"],
+  "風呂": ["温泉"],
+  "湯": ["温泉"],
+  "露天": ["温泉"],
+  "露天風呂": ["温泉"],
+  "銭湯": ["温泉"],
+  "サウナ": ["温泉"],
+  "入浴": ["温泉"],
+  "湯治": ["温泉"],
+  "足湯": ["温泉"],
+  "源泉": ["温泉"],
+  "硫黄": ["温泉"],
+
+  // === 自然系 ===
+  "山": ["自然"],
+  "海": ["自然", "離島"],
+  "森": ["自然"],
+  "川": ["自然"],
+  "湖": ["自然"],
+  "滝": ["自然"],
+  "渓谷": ["自然"],
+  "高原": ["自然"],
+  "草原": ["自然"],
+  "花": ["自然"],
+  "花畑": ["自然"],
+  "星": ["自然"],
+  "星空": ["自然"],
+  "朝日": ["自然"],
+  "夕日": ["自然", "離島"],
+  "日の出": ["自然"],
+  "トレッキング": ["自然"],
+  "ハイキング": ["自然"],
+  "登山": ["自然"],
+  "アウトドア": ["自然"],
+  "キャンプ": ["自然"],
+  "釣り": ["自然"],
+  "ダイビング": ["自然", "離島"],
+  "シュノーケル": ["自然", "離島"],
+  "サーフィン": ["自然"],
+
+  // === グルメ系 ===
+  "食べ物": ["グルメ"],
+  "ご飯": ["グルメ"],
+  "食事": ["グルメ"],
+  "ランチ": ["グルメ"],
+  "ディナー": ["グルメ"],
+  "美味しい": ["グルメ"],
+  "名物": ["グルメ"],
+  "食べ歩き": ["グルメ"],
+  "B級グルメ": ["グルメ"],
+  "海鮮": ["グルメ"],
+  "寿司": ["グルメ"],
+  "ラーメン": ["グルメ"],
+  "そば": ["グルメ"],
+  "うどん": ["グルメ"],
+  "カフェ": ["グルメ"],
+  "スイーツ": ["グルメ"],
+  "お酒": ["グルメ"],
+  "居酒屋": ["グルメ"],
+  "地酒": ["グルメ"],
+  "日本酒": ["グルメ"],
+  "ワイン": ["グルメ"],
+  "市場": ["グルメ"],
+  "朝市": ["グルメ"],
+  "料理": ["グルメ"],
+  "郷土料理": ["グルメ"],
+  "地元": ["グルメ"],
+
+  // === 歴史・文化系 ===
+  "寺": ["歴史・文化"],
+  "お寺": ["歴史・文化"],
+  "神社": ["歴史・文化"],
+  "仏閣": ["歴史・文化"],
+  "城": ["歴史・文化"],
+  "お城": ["歴史・文化"],
+  "城下町": ["歴史・文化"],
+  "伝統": ["歴史・文化"],
+  "古い街並み": ["歴史・文化"],
+  "歴史": ["歴史・文化"],
+  "文化": ["歴史・文化"],
+  "世界遺産": ["歴史・文化", "自然"],
+  "遺跡": ["歴史・文化"],
+  "古都": ["歴史・文化"],
+  "武家屋敷": ["歴史・文化"],
+  "庭園": ["歴史・文化", "アート"],
+  "日本庭園": ["歴史・文化"],
+  "着物": ["歴史・文化"],
+  "祭り": ["歴史・文化"],
+  "お祭り": ["歴史・文化"],
+  "伝統工芸": ["歴史・文化", "アート"],
+  "陶芸": ["歴史・文化", "アート"],
+
+  // === アート系 ===
+  "美術館": ["アート"],
+  "芸術": ["アート"],
+  "ギャラリー": ["アート"],
+  "建築": ["アート"],
+  "デザイン": ["アート"],
+  "写真映え": ["アート", "自然"],
+  "インスタ": ["アート", "自然"],
+  "フォトジェニック": ["アート", "自然"],
+  "映え": ["アート", "自然"],
+  "おしゃれ": ["アート", "グルメ"],
+  "クリエイティブ": ["アート"],
+  "現代アート": ["アート"],
+  "博物館": ["アート", "歴史・文化"],
+
+  // === 離島系 ===
+  "島": ["離島"],
+  "船": ["離島"],
+  "フェリー": ["離島"],
+  "ビーチ": ["離島", "自然"],
+  "砂浜": ["離島", "自然"],
+  "青い海": ["離島", "自然"],
+  "離島": ["離島"],
+
+  // === 気分・目的系 ===
+  "癒し": ["温泉", "自然"],
+  "リラックス": ["温泉", "自然"],
+  "のんびり": ["温泉", "自然"],
+  "ゆっくり": ["温泉", "自然"],
+  "まったり": ["温泉", "グルメ"],
+  "リフレッシュ": ["自然", "温泉"],
+  "デトックス": ["温泉", "自然"],
+  "非日常": ["離島", "自然", "アート"],
+  "冒険": ["自然", "離島"],
+  "探検": ["自然", "歴史・文化"],
+  "散歩": ["歴史・文化", "グルメ"],
+  "街歩き": ["歴史・文化", "グルメ"],
+  "ぶらぶら": ["歴史・文化", "グルメ"],
+  "読書": ["自然", "温泉"],
+  "一人時間": ["温泉", "自然", "アート"],
+  "ひとり": ["温泉", "自然"],
+  "静か": ["自然", "温泉"],
+  "穴場": ["離島", "自然"],
+  "秘境": ["自然", "離島"],
+  "パワースポット": ["自然", "歴史・文化"],
+  "カメラ": ["自然", "アート"],
+  "写真": ["自然", "アート"],
+  "サイクリング": ["自然", "歴史・文化"],
+  "自転車": ["自然", "歴史・文化"],
+  "ドライブ": ["自然"],
+  "電車旅": ["歴史・文化", "自然"],
+  "鉄道": ["歴史・文化", "自然"],
+
+  // === 季節系 ===
+  "紅葉": ["自然", "歴史・文化"],
+  "桜": ["自然", "歴史・文化"],
+  "花見": ["自然"],
+  "夏休み": ["離島", "自然"],
+  "夏": ["離島", "自然"],
+  "冬": ["温泉"],
+  "秋": ["自然", "グルメ"],
+  "春": ["自然", "歴史・文化"],
+  "雪": ["温泉", "自然"],
+  "避暑": ["自然", "離島"],
+  "涼しい": ["自然", "離島"],
+
+  // === 予算系 ===
+  "安い": ["グルメ"],
+  "格安": ["グルメ"],
+  "コスパ": ["グルメ"],
+  "贅沢": ["温泉", "グルメ"],
+  "ご褒美": ["温泉", "グルメ", "アート"],
 };
 
-export type Review = {
-  id: string;
-  userName: string;
-  avatar: string;
-  rating: number;
-  date: string;
-  comment: string;
-};
-
-// ── Cafes ──
-
-export const cafes: Cafe[] = [
+export const destinations: Destination[] = [
   {
     id: "1",
-    name: "Morning Light Coffee",
-    area: "District 1",
-    rating: 4.6,
-    reviewCount: 128,
-    tags: ["Wi-Fi", "Quiet", "Power Outlets"],
-    image: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop",
-    priceRange: "$$",
-    hours: "7:00 - 22:00",
-    description: "A cozy neighborhood café with excellent pour-over coffee and a calm atmosphere perfect for remote work.",
+    name: "箱根",
+    area: "神奈川県",
+    image: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=600&h=400&fit=crop",
+    budgetLabel: "¥15,000〜",
+    budgetValue: 15000,
+    tags: ["温泉", "自然", "グルメ"],
+    description: "都心から90分。温泉と美術館を巡るのんびり一人旅に最適。",
   },
   {
     id: "2",
-    name: "The Roastery",
-    area: "District 3",
-    rating: 4.8,
-    reviewCount: 256,
-    tags: ["Specialty", "Roastery", "Beans"],
-    image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&h=400&fit=crop",
-    priceRange: "$$$",
-    hours: "8:00 - 21:00",
-    description: "Single-origin beans roasted in-house. Watch the roasting process while enjoying your cup.",
+    name: "金沢",
+    area: "石川県",
+    image: "https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=600&h=400&fit=crop",
+    budgetLabel: "¥25,000〜",
+    budgetValue: 25000,
+    tags: ["歴史・文化", "グルメ", "アート"],
+    description: "兼六園、近江町市場、21世紀美術館。歩いて巡れるコンパクトな街。",
   },
   {
     id: "3",
-    name: "Garden Brew",
-    area: "Binh Thanh",
-    rating: 4.3,
-    reviewCount: 89,
-    tags: ["Garden", "Pet-Friendly", "Brunch"],
-    image: "https://images.unsplash.com/photo-1521017432531-fbd92d768814?w=600&h=400&fit=crop",
-    priceRange: "$$",
-    hours: "6:30 - 20:00",
-    description: "Open-air garden café surrounded by tropical plants. Great brunch menu and pet-friendly.",
+    name: "屋久島",
+    area: "鹿児島県",
+    image: "https://images.unsplash.com/photo-1440342359743-84fcb8c21f21?w=600&h=400&fit=crop",
+    budgetLabel: "¥40,000〜",
+    budgetValue: 40000,
+    tags: ["自然", "離島"],
+    description: "世界遺産の森でトレッキング。大自然に包まれる非日常体験。",
   },
   {
     id: "4",
-    name: "Saigon Drip",
-    area: "District 7",
-    rating: 4.5,
-    reviewCount: 167,
-    tags: ["Vietnamese", "Traditional", "Iced Coffee"],
-    image: "https://images.unsplash.com/photo-1559496417-e7f25cb247f3?w=600&h=400&fit=crop",
-    priceRange: "$",
-    hours: "6:00 - 23:00",
-    description: "Authentic Vietnamese coffee with a modern twist. Their cà phê sữa đá is legendary.",
+    name: "尾道",
+    area: "広島県",
+    image: "https://images.unsplash.com/photo-1480796927426-f609979314bd?w=600&h=400&fit=crop",
+    budgetLabel: "¥12,000〜",
+    budgetValue: 12000,
+    tags: ["歴史・文化", "グルメ", "アート"],
+    description: "坂と寺と猫の町。しまなみ海道のサイクリングも楽しめる。",
   },
   {
     id: "5",
-    name: "Analog Coffee Lab",
-    area: "District 2",
-    rating: 4.7,
-    reviewCount: 203,
-    tags: ["Specialty", "Minimal", "Workspace"],
-    image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600&h=400&fit=crop",
-    priceRange: "$$$",
-    hours: "7:30 - 21:30",
-    description: "Minimalist specialty coffee shop with carefully curated single-origin selections.",
+    name: "別府",
+    area: "大分県",
+    image: "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?w=600&h=400&fit=crop",
+    budgetLabel: "¥18,000〜",
+    budgetValue: 18000,
+    tags: ["温泉", "グルメ"],
+    description: "日本一の湧出量を誇る温泉地。地獄めぐりと砂湯が名物。",
   },
   {
     id: "6",
-    name: "Coconut Tree Café",
-    area: "Thu Duc",
-    rating: 4.1,
-    reviewCount: 45,
-    tags: ["Local", "Budget", "Street View"],
-    image: "https://images.unsplash.com/photo-1453614512568-c4024d13c247?w=600&h=400&fit=crop",
-    priceRange: "$",
-    hours: "5:30 - 22:00",
-    description: "Charming local café under coconut trees. Affordable drinks and a true Saigon vibe.",
+    name: "直島",
+    area: "香川県",
+    image: "https://images.unsplash.com/photo-1570459027562-4a916cc6113f?w=600&h=400&fit=crop",
+    budgetLabel: "¥20,000〜",
+    budgetValue: 20000,
+    tags: ["アート", "離島"],
+    description: "島まるごと美術館。草間彌生のかぼちゃは一度は見たい。",
   },
 ];
-
-// ── Menu items for cafe detail ──
-
-export const menuItems: MenuItem[] = [
-  { id: "m1", name: "Espresso", price: 45000, category: "coffee" },
-  { id: "m2", name: "Cappuccino", price: 55000, category: "coffee", popular: true },
-  { id: "m3", name: "Pour Over", price: 65000, category: "coffee" },
-  { id: "m4", name: "Cà Phê Sữa Đá", price: 35000, category: "coffee", popular: true },
-  { id: "m5", name: "Matcha Latte", price: 60000, category: "tea" },
-  { id: "m6", name: "Jasmine Green Tea", price: 40000, category: "tea" },
-  { id: "m7", name: "Bánh Mì Sandwich", price: 50000, category: "food" },
-  { id: "m8", name: "Avocado Toast", price: 75000, category: "food", popular: true },
-  { id: "m9", name: "Tiramisu", price: 65000, category: "dessert" },
-  { id: "m10", name: "Crème Brûlée", price: 70000, category: "dessert" },
-];
-
-// ── Reviews for cafe detail ──
-
-export const reviews: Review[] = [
-  {
-    id: "r1",
-    userName: "Minh Tran",
-    avatar: "MT",
-    rating: 5,
-    date: "2026-03-08",
-    comment: "Best pour-over in the city. The barista really knows their craft. Will definitely come back!",
-  },
-  {
-    id: "r2",
-    userName: "Sarah K.",
-    avatar: "SK",
-    rating: 4,
-    date: "2026-03-05",
-    comment: "Great atmosphere for working. Wi-Fi is fast and stable. Coffee is good but a bit pricey.",
-  },
-  {
-    id: "r3",
-    userName: "Huy Nguyen",
-    avatar: "HN",
-    rating: 5,
-    date: "2026-02-28",
-    comment: "Love the minimalist interior. The single-origin Ethiopian was exceptional. Friendly staff too.",
-  },
-  {
-    id: "r4",
-    userName: "Lisa Chen",
-    avatar: "LC",
-    rating: 3,
-    date: "2026-02-20",
-    comment: "Coffee is solid but the space gets crowded on weekends. Go on weekdays if you want a seat.",
-  },
-  {
-    id: "r5",
-    userName: "Duc Pham",
-    avatar: "DP",
-    rating: 4,
-    date: "2026-02-15",
-    comment: "Nice place to catch up with friends. The tiramisu is surprisingly good for a coffee shop.",
-  },
-];
-
-// ── Helpers ──
-
-export function formatPrice(vnd: number): string {
-  return new Intl.NumberFormat("vi-VN").format(vnd) + "đ";
-}
-
-export function renderStars(rating: number): string {
-  return "★".repeat(Math.round(rating)) + "☆".repeat(5 - Math.round(rating));
-}

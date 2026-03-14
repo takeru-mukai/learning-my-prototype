@@ -15,7 +15,7 @@ export type ScreenPattern = {
   label: string;
   description: string;
   query: string;
-  group?: string; // パターンの観点カテゴリ（例: "レビュー表示", "ヘッダー構成"）
+  group?: string;
 };
 
 export type Screen = {
@@ -29,74 +29,123 @@ export type Screen = {
 };
 
 // ─── Define your screens here ───
-//
-// Only include screens that are part of the prototype's user flow.
-// Do NOT include /spec, /qa, /map — these are meta pages, not prototype screens.
-//
-// ## State（状態）
-//   ユーザーが能動的に操作して切り替わる画面のモード。
-//   例: タブ切替、表示切替（グリッド/リスト）、入力ステップ
-//   → アプリ内のUI操作で遷移する。本番に全て残る。
-//   → query: "_tab=xxx" などで切り替え
-//
-// ## Variant（バリエーション）
-//   データ条件やシステム状況で自動的に変わる表示。
-//   例: ローディング中、データ0件、エラー状態
-//   → ユーザーが意図して切り替えるものではない。本番に全て残る。
-//   → query: "_v=xxx" で切り替え
-//
-// ## Pattern（パターン）
-//   デザイン方針の比較検討用。「どちらの設計で行くか迷っている」時に使う。
-//   例: カード型レビュー vs タイムライン型レビュー、モーダル vs ドロワー
-//   → 本番では1つだけ採用する。プロトタイプ段階で比較するためのもの。
-//   → query: "_p=xxx" で切り替え
-//   → IMPORTANT: アプリ内にUI切替機能があるもの（グリッド/リスト表示トグル等）は
-//     Pattern ではなく State として定義する。Pattern はアプリ内にトグルUIを持たない。
-//
-// - linksTo: IDs of screens this screen navigates to (for map arrows)
 
 export const screens: Screen[] = [
   {
-    id: "cafe-list",
-    label: "カフェ一覧",
+    id: "destination-list",
+    label: "行き先一覧",
     path: "/",
     states: [
-      { id: "grid", label: "グリッド表示" },
-      { id: "list", label: "リスト表示", query: "_tab=list" },
+      { id: "default", label: "デフォルト表示" },
     ],
     variants: [
       { id: "empty", label: "検索結果なし", query: "_v=empty" },
       { id: "loading", label: "ローディング", query: "_v=loading" },
     ],
-    linksTo: ["cafe-detail"],
+    linksTo: ["destination-detail"],
   },
   {
-    id: "cafe-detail",
-    label: "カフェ詳細",
-    path: "/cafe",
+    id: "destination-detail",
+    label: "旅行先 詳細",
+    path: "/detail",
     states: [
-      { id: "menu", label: "メニュー", query: "_tab=menu" },
-      { id: "reviews", label: "レビュー", query: "_tab=reviews" },
+      { id: "default", label: "デフォルト表示（パターンB）" },
     ],
     variants: [
-      { id: "no-reviews", label: "レビューなし", query: "_tab=reviews&_v=no-reviews" },
       { id: "loading", label: "ローディング", query: "_v=loading" },
+      { id: "empty", label: "空状態（見つからない）", query: "_v=empty" },
+    ],
+    patterns: [
+      // 詳細レイアウト
+      {
+        id: "layout-a",
+        label: "パターンA: 左サムネ・右テキスト",
+        description: "横並びレイアウト。PC向けに情報を一覧しやすい構成",
+        query: "_p=layout-a",
+        group: "詳細レイアウト",
+      },
+      {
+        id: "layout-b",
+        label: "パターンB: 上画像・下テキスト",
+        description: "縦積みレイアウト。モバイルファーストで読みやすい構成",
+        query: "_p=layout-b",
+        group: "詳細レイアウト",
+      },
+      {
+        id: "layout-c",
+        label: "パターンC: ヒーロー画像＋オーバーレイ",
+        description: "画像を全幅で表示し、テキストを重ねる没入感のある構成",
+        query: "_p=layout-c",
+        group: "詳細レイアウト",
+      },
+      // レビュー表示
+      {
+        id: "review-card",
+        label: "レビュー: カード型",
+        description: "各レビューをカードで区切って表示。独立性が高く読みやすい",
+        query: "_p=review-card",
+        group: "レビュー表示",
+      },
+      {
+        id: "review-timeline",
+        label: "レビュー: タイムライン型",
+        description: "時系列で縦につなげて表示。投稿の流れが把握しやすい",
+        query: "_p=review-timeline",
+        group: "レビュー表示",
+      },
+    ],
+    linksTo: ["destination-list", "review", "plan"],
+  },
+  {
+    id: "review",
+    label: "レビュー一覧",
+    path: "/detail",
+    states: [
+      { id: "default", label: "カード型（デフォルト）", query: "_p=review-card" },
     ],
     patterns: [
       {
-        id: "card-review",
-        label: "カード型レビュー",
-        description: "各レビューを独立したカードで表示。視覚的な区切りが明確。",
-        query: "_tab=reviews&_p=card-review",
-        group: "レビュー表示",
+        id: "card",
+        label: "カード型",
+        description: "各レビューをカードで区切って表示",
+        query: "_p=review-card",
       },
       {
-        id: "timeline-review",
-        label: "タイムライン型レビュー",
-        description: "時系列でレビューを繋げて表示。会話の流れのように読める。",
-        query: "_tab=reviews&_p=timeline-review",
-        group: "レビュー表示",
+        id: "timeline",
+        label: "タイムライン型",
+        description: "時系列で縦につなげて表示",
+        query: "_p=review-timeline",
       },
     ],
+    linksTo: ["destination-detail"],
+  },
+  {
+    id: "plan",
+    label: "旅程作成",
+    path: "/plan",
+    states: [
+      { id: "default", label: "カード追加型（デフォルト）" },
+    ],
+    patterns: [
+      {
+        id: "card",
+        label: "カード追加型",
+        description: "スポットをカードで追加していくステップ形式",
+        query: "_p=card",
+      },
+      {
+        id: "timeline",
+        label: "タイムライン型",
+        description: "時間軸で縦に並べるスケジュールビュー",
+        query: "_p=timeline",
+      },
+      {
+        id: "map",
+        label: "マップ＋リスト型",
+        description: "左にルートマップ、右にスポットリスト",
+        query: "_p=map",
+      },
+    ],
+    linksTo: ["destination-detail"],
   },
 ];

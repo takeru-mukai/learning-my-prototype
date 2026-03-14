@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useCallback, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { X, RectangleVertical, Columns2, Columns3, LayoutGrid, Grid3x3 } from "lucide-react";
 import type { Screen, ScreenState, ScreenVariant, ScreenPattern } from "./screens";
 import { getBasePath } from "../base-path";
@@ -34,20 +35,18 @@ function ScreenshotCard({
   compact?: boolean;
   color: "gray" | "amber";
 }) {
+  const router = useRouter();
   const query = item.query ? `?${item.query}` : "";
-  const href = `${getBasePath()}${path}${query}`;
+  const href = `${path}${query}`;
   const imgSrc = isVariant
     ? variantScreenshotSrc(screenId, item.id)
     : screenshotSrc(screenId, item.id);
 
-  const dotColor = color === "amber" ? "bg-amber-400" : "bg-gray-400";
-  const labelColor = color === "amber" ? "text-amber-700" : "text-wf-text";
-
   return (
     <div>
-      <a
-        href={href}
-        className="block rounded-sm border border-wf-border overflow-hidden hover:border-wf-accent hover:shadow-md transition-all"
+      <button
+        onClick={() => router.push(href)}
+        className="block w-full rounded-sm border border-wf-border overflow-hidden hover:border-wf-accent hover:shadow-md transition-all cursor-pointer text-left"
       >
         <img
           src={imgSrc}
@@ -57,7 +56,7 @@ function ScreenshotCard({
             (e.target as HTMLImageElement).style.display = "none";
           }}
         />
-      </a>
+      </button>
       <div className={`${compact ? "mt-1.5" : "mt-2"}`}>
         <span className={`font-medium leading-tight text-wf-text-sub ${compact ? "text-[11px]" : "text-xs"}`}>
           {item.label}
@@ -85,14 +84,15 @@ function PatternCard({
   path: string;
   compact?: boolean;
 }) {
-  const href = pattern.query ? `${getBasePath()}${path}?${pattern.query}` : `${getBasePath()}${path}`;
+  const router = useRouter();
+  const href = pattern.query ? `${path}?${pattern.query}` : path;
   const imgSrc = patternScreenshotSrc(screenId, pattern.id);
 
   return (
     <div>
-      <a
-        href={href}
-        className="block rounded-sm border border-wf-border overflow-hidden hover:border-violet-400 hover:shadow-md transition-all"
+      <button
+        onClick={() => router.push(href)}
+        className="block w-full rounded-sm border border-wf-border overflow-hidden hover:border-violet-400 hover:shadow-md transition-all cursor-pointer text-left"
       >
         <img
           src={imgSrc}
@@ -102,7 +102,7 @@ function PatternCard({
             (e.target as HTMLImageElement).style.display = "none";
           }}
         />
-      </a>
+      </button>
       <div className={`${compact ? "mt-1.5" : "mt-2"}`}>
         <span className={`font-medium leading-tight text-wf-text-sub ${compact ? "text-[11px]" : "text-xs"}`}>
           {pattern.label}
